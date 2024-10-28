@@ -156,7 +156,7 @@ foreach($orderan as $terjual) {
                 Add Item
               </a>
             </div>
-            <div class="pagination">
+            <div class="pagination" id="pagination">
               <a href="?page=1" class="text-blue-500 hover:underline">First</a>
             <?php if ($halamanAktif > 1) : ?>
             <a href="?page=<?= $halamanAktif - 1?>" class="text-blue-500 hover:underline">Previous</a>

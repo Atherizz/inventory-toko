@@ -60,6 +60,13 @@ foreach($cashier as $total) {
   $subtotal+=$total["subtotal"];
 }
 
+// menampilkan diskon
+
+$queryDiskon = "SELECT * FROM diskon";
+$discounts = mysqli_query($db, $queryDiskon);
+
+
+
 ?>
 
 
@@ -152,6 +159,33 @@ foreach($cashier as $total) {
             </div>
           </div>
         </div>
+
+        <!-- Discount Table -->
+        <div class="bg-white p-4 rounded-lg shadow-md mb-6">
+          <h2 class="text-xl font-bold mb-4">Discount Information</h2>
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr>
+                <th class="pb-2 border-b">ID</th>
+                <th class="pb-2 border-b">Discount Percentage</th>
+                <th class="pb-2 border-b">Minimum Order</th>
+                <th class="pb-2 border-b">Validity Period</th>
+              </tr>
+            </thead>
+            <tbody>
+              <?php 
+              while($row = mysqli_fetch_assoc($discounts)) : ?>
+              <tr class="border-t">
+                <td class="py-2"><?= $row["id"] ?></td>
+                <td class="py-2"><?= $row["persentase"] ?>%</td>
+                <td class="py-2">Rp. <?= number_format($row["minimum_order"], 2) ?></td>
+                <td class="py-2"><?= $row["masa_berlaku"] ?></td>
+              </tr>
+              <?php endwhile; ?>
+            </tbody>
+          </table>
+        </div>
+
         <div class="grid grid-cols-3 gap-6">
           <!-- Cashier Control -->
           <div class="col-span-2 bg-white p-6 rounded-lg shadow-md">
@@ -224,14 +258,16 @@ foreach($cashier as $total) {
                   id="memberCard"
                   type="text" name="customer" required id="customer"
                 /> 
+                <label class="block text-gray-700 mb-2">
+                  Discount ID
+                </label>
+                <input
+                  class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  id="memberCard"
+                  type="number" name="discount" id="discount" required 
+                /> 
               </div>
               </div>
-              <!-- <button
-                class="bg-green-500 text-white px-4 py-2 rounded w-full mt-4" name="discount"
-                type="submit" onclick="applyDiscount()"
-              >
-                Apply Discount
-              </button> -->
             
               <button
                 class="bg-blue-500 text-white px-4 py-2 rounded w-full mt-4" type="submit" name="checkout" onclick="return confirm('apakah anda yakin ingin checkout?')"
@@ -239,6 +275,7 @@ foreach($cashier as $total) {
                 Checkout
               </button>
               </form>
+            </
             </div>
           </div>
         </div>
@@ -249,6 +286,8 @@ foreach($cashier as $total) {
       if (isset($_POST["checkout"])) {
            // menambahkan transaksi baru
           $customerId = $_POST["customer"];
+          $discountId = $_POST["discount"];
+
           // memeriksa apakah customer sudah terdaftar atau belum
           $queryCheckCustomer = "SELECT id FROM customer WHERE
           id = '$customerId'
@@ -268,7 +307,20 @@ foreach($cashier as $total) {
           $currentDate = date('Y-m-d H:i:s');
           }
 
-          // apply diskon
+          // memeriksa apakah id diskon ada
+          $queryCheckDiscount = "SELECT * FROM diskon WHERE
+          id = '$discountId'
+          ";
+
+          $resultDiscount = mysqli_query($db, $queryCheckDiscount);
+          
+
+          if (mysqli_num_rows($resultDiscount) > 0) {  
+          $ambilDiskon = mysqli_fetch_assoc($resultDiscount);
+
+          if ($ambilDiskon["masa_berlaku"] >= $currentDate) {
+
+             // apply diskon
           $error = "";
           $discount = 0;
           
@@ -280,33 +332,27 @@ foreach($cashier as $total) {
       
           $member = mysqli_query($db, $queryCheckMember);
 
-          
-          
           if (mysqli_num_rows($member) > 0) {
-          $query = "SELECT * FROM diskon WHERE 
-          masa_berlaku >= '$currentDate'
-          ";
-          $diskon = mysqli_query($db, $query);
-          $result = mysqli_fetch_assoc($diskon);
-
-          if (mysqli_num_rows($diskon) > 0) {
-
-          if ($result["minimum_order"] <= $subtotal) {
-            $subtotal -= $subtotal * $result["persentase"] / 100;
-            $discount = $result["persentase"];
+        
+          if ($ambilDiskon["minimum_order"] <= $subtotal) {
+            $subtotal -= $subtotal * $ambilDiskon["persentase"] / 100;
+            $discount = $ambilDiskon["persentase"];
           } else {
             $error = "tidak memenuhi minimum order!";
           }
-
-        } else {
-          $error = "diskon tidak ditemukan!";
-        }
-
           } else {
           $error = "anda bukan member!";
           $discount = 0;
-      
           }
+
+        } else {
+          $error = "diskon sudah tidak berlaku!";
+        }
+
+          } else {
+            $error = "diskon tidak ditemukan!";
+          }
+
   
         // memasukkan data ke tabel transaksi
         $queryTransaksi = "INSERT INTO transaksi (customer_id, `date`, total)
