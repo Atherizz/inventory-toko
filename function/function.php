@@ -57,6 +57,27 @@ function tambah ($data) {
     return mysqli_affected_rows($db);
 }
 
+function tambahDiskon ($data) {
+    global $db;
+
+    $persentase = htmlspecialchars($data["persentase"]);
+    $minimum = htmlspecialchars($data["minimum"]);
+    $expired = htmlspecialchars($data["expired"]);
+
+    if ($persentase < 1 || $persentase > 100) {
+        $error = "masukkan angka dari 1 - 100!)";
+        return false;
+    }
+   
+    $query = "INSERT INTO diskon (persentase,minimum_order,masa_berlaku) VALUES
+    ('$persentase','$minimum','$expired')
+    ";
+
+    mysqli_query($db, $query);
+
+    return mysqli_affected_rows($db);
+}
+
 function edit ($data) {
     global $db;
     $id = $data["id"];

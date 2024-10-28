@@ -193,7 +193,6 @@ foreach($cashier as $total) {
                   <th class="pb-2">Qty</th>
                   <th class="pb-2">Price</th>
                   <th class="pb-2">Total</th>
-                  <th class="pb-2">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -204,9 +203,6 @@ foreach($cashier as $total) {
                   <td class="py-2"><?= $row["qty"] ?></td>
                   <td class="py-2"><?= $row["harga"] ?></td>
                   <td class="py-2"><?= $row["subtotal"] ?></td>
-                  <td class="py-2 text-red-500">
-                    <a href="#"> Remove </a>
-                  </td>
                 </tr>
                 <?php endforeach; ?>
               </tbody>
@@ -283,14 +279,29 @@ foreach($cashier as $total) {
           "; 
       
           $member = mysqli_query($db, $queryCheckMember);
+
+          
           
           if (mysqli_num_rows($member) > 0) {
-            if ($subtotal >= 50000) {
-            $discount = 20;
-            $subtotal-= ($subtotal * $discount / 100);
-            } else {
-              $error = "transaksi kurang dari 50000!";
-            }
+          $query = "SELECT * FROM diskon WHERE 
+          masa_berlaku >= '$currentDate'
+          ";
+          $diskon = mysqli_query($db, $query);
+          $result = mysqli_fetch_assoc($diskon);
+
+          if (mysqli_num_rows($diskon) > 0) {
+
+          if ($result["minimum_order"] <= $subtotal) {
+            $subtotal -= $subtotal * $result["persentase"] / 100;
+            $discount = $result["persentase"];
+          } else {
+            $error = "tidak memenuhi minimum order!";
+          }
+
+        } else {
+          $error = "diskon tidak ditemukan!";
+        }
+
           } else {
           $error = "anda bukan member!";
           $discount = 0;

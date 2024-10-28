@@ -23,6 +23,18 @@ $query = "SELECT * FROM transaksi LIMIT $awalData, $barisPerHalaman";
 
 $customer = query($query);
 
+$error = "";
+
+if (isset($_POST["submit"])) {
+  if (tambahDiskon($_POST) > 0) {
+    echo "<script>
+    alert('diskon berhasil ditambahkan!')
+    </script>";
+  } else {
+    $error = "masukkan angka dari 1 - 100";
+  }
+}
+
 ?>
 
 <html>
@@ -183,31 +195,32 @@ $customer = query($query);
                 Add Discount
               </button>
             </div>
-            <form>
-              <div class="mb-4">
-                <label class="block text-gray-700"> Discount Name </label>
-                <input
-                  class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  type="text"
-                />
-              </div>
+            <form action="" method="POST">
               <div class="mb-4">
                 <label class="block text-gray-700"> Discount Percentage </label>
                 <input
                   class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  type="number"
+                  type="text" name="persentase" min="0" max="100" required
+                />
+              </div>
+              <div class="mb-4">
+                <label class="block text-gray-700"> Minimum Order Amount</label>
+                <input
+                  class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  type="number" name="minimum" required
                 />
               </div>
               <div class="mb-4">
                 <label class="block text-gray-700">
-                  Minimum Order Amount
+                  Expired Date
                 </label>
                 <input
                   class="w-full px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  type="number"
+                  type="date" name="expired" required
                 />
+                <p style="color: red; font-style: italic;"><?= $error ?></p>
               </div>
-              <button class="bg-blue-500 text-white px-4 py-2 rounded w-full">
+              <button class="bg-blue-500 text-white px-4 py-2 rounded w-full" type="submit" name="submit">
                 Save Discount
               </button>
             </form>

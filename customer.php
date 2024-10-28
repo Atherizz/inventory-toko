@@ -12,8 +12,6 @@ $query = "SELECT * FROM customer";
 
 $customer = query($query);
 
-
-
 ?>
 
 
